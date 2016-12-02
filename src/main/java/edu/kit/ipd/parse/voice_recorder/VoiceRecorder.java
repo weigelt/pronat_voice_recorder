@@ -56,7 +56,6 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.TargetDataLine;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -66,243 +65,258 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import edu.kit.ipd.parse.luna.tools.ConfigManager;
 
-
 /**
-* SimpleSoundCapture Example. This is a simple program to record sounds and
-* play them back. It uses some methods from the CapturePlayback program in the
-* JavaSoundDemo. For licensizing reasons the disclaimer above is included.
-* 
-* @author Steve Potts
-*/
+ * SimpleSoundCapture Example. This is a simple program to record sounds and
+ * play them back. It uses some methods from the CapturePlayback program in the
+ * JavaSoundDemo. For licensizing reasons the disclaimer above is included.
+ * 
+ * @author Steve Potts
+ */
 public class VoiceRecorder extends JPanel implements ActionListener {
-	
- String userDirectory = System.getProperty("user.home");
-	
- Properties props = ConfigManager.getConfiguration(getClass());
- 
- String targetDirectory = userDirectory + props.getProperty("PATH");
- 
- String path = "";
 
- final int bufSize = 16384;
+	private static final Logger logger = LoggerFactory.getLogger(VoiceRecorder.class);
 
- Capture capture = new Capture();
+	String userDirectory = System.getProperty("user.home");
 
- AudioInputStream audioInputStream;
+	Properties props = ConfigManager.getConfiguration(getClass());
 
- JButton captB;
+	String targetDirectory = userDirectory + props.getProperty("PATH");
 
- JTextField textField;
+	String path = "";
 
- String errStr;
+	final int bufSize = 16384;
 
- double duration, seconds;
+	Capture capture = new Capture();
 
- File file;
+	AudioInputStream audioInputStream;
 
- public VoiceRecorder() {
-   setLayout(new BorderLayout());
-   EmptyBorder eb = new EmptyBorder(5, 5, 5, 5);
-   SoftBevelBorder sbb = new SoftBevelBorder(SoftBevelBorder.LOWERED);
-   setBorder(new EmptyBorder(5, 5, 5, 5));
+	JButton captB;
 
-   JPanel p1 = new JPanel();
-   p1.setLayout(new BoxLayout(p1, BoxLayout.X_AXIS));
+	JTextField textField;
 
-   JPanel p2 = new JPanel();
-   p2.setBorder(sbb);
-   p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
+	String errStr;
 
-   JPanel buttonsPanel = new JPanel();
-   buttonsPanel.setBorder(new EmptyBorder(10, 0, 5, 0));
-   captB = addButton("Record", buttonsPanel, true);
-   p2.add(buttonsPanel);
+	double duration, seconds;
 
-   p1.add(p2);
-   add(p1);
- }
+	File file;
 
- public void open() {
- }
+	public VoiceRecorder() {
+		setLayout(new BorderLayout());
+		EmptyBorder eb = new EmptyBorder(5, 5, 5, 5);
+		SoftBevelBorder sbb = new SoftBevelBorder(SoftBevelBorder.LOWERED);
+		setBorder(new EmptyBorder(5, 5, 5, 5));
 
- public void close() {
-   if (capture.thread != null) {
-     captB.doClick(0);
-   }
- }
+		JPanel p1 = new JPanel();
+		p1.setLayout(new BoxLayout(p1, BoxLayout.X_AXIS));
 
- private JButton addButton(String name, JPanel p, boolean state) {
-   JButton b = new JButton(name);
-   b.addActionListener(this);
-   b.setEnabled(state);
-   p.add(b);
-   return b;
- }
+		JPanel p2 = new JPanel();
+		p2.setBorder(sbb);
+		p2.setLayout(new BoxLayout(p2, BoxLayout.Y_AXIS));
 
- public void actionPerformed(ActionEvent e) {
-	   Object obj = e.getSource();
-	   if (obj.equals(captB)) {
-	     if (captB.getText().startsWith("Record")) {
-	       capture.start();
-	       captB.setText("Stop");
-	     } else {
-	       capture.stop();
-	     }
+		JPanel buttonsPanel = new JPanel();
+		buttonsPanel.setBorder(new EmptyBorder(10, 0, 5, 0));
+		captB = addButton("Record", buttonsPanel, true);
+		p2.add(buttonsPanel);
 
-	   }
-	 }
- /**
-  * Reads data from the input channel and writes to the output stream
-  */
- class Capture implements Runnable {
+		p1.add(p2);
+		add(p1);
+	}
 
-   TargetDataLine line;
+	public void open() {
+	}
 
-   Thread thread;
+	public void close() {
+		if (capture.thread != null) {
+			captB.doClick(0);
+		}
+	}
 
-   public void start() {
-     errStr = null;
-     thread = new Thread(this);
-     thread.setName("Capture");
-     thread.start();
-   }
+	private JButton addButton(String name, JPanel p, boolean state) {
+		JButton b = new JButton(name);
+		b.addActionListener(this);
+		b.setEnabled(state);
+		p.add(b);
+		return b;
+	}
 
-   public void stop() {
-     thread = null;
-   }
+	public void actionPerformed(ActionEvent e) {
+		Object obj = e.getSource();
+		if (obj.equals(captB)) {
+			if (captB.getText().startsWith("Record")) {
+				capture.start();
+				captB.setText("Stop");
+			} else {
+				capture.stop();
+			}
 
-   private void shutDown(String message) {
-     if ((errStr = message) != null && thread != null) {
-       thread = null;
-       captB.setText("Record");
-       System.err.println(errStr);
-     }
-   }
+		}
+	}
 
-   public void run() {
+	/**
+	 * Reads data from the input channel and writes to the output stream
+	 */
+	class Capture implements Runnable {
 
-     duration = 0;
-     audioInputStream = null;
+		TargetDataLine line;
 
-     // define the required attributes for our line,
-     // and make sure a compatible line is supported.
+		Thread thread;
 
-     AudioFormat.Encoding encoding = AudioFormat.Encoding.PCM_SIGNED;
-     float rate = 44100.0f;
-     int channels = 2;
-     int frameSize = 4;
-     int sampleSize = 16;
-     boolean bigEndian = false;
+		public void start() {
+			errStr = null;
+			thread = new Thread(this);
+			thread.setName("Capture");
+			thread.start();
+		}
 
-     AudioFormat format = new AudioFormat(encoding, rate, sampleSize, channels, (sampleSize / 8) // ################## 16 bit -> Configdatei machen!!!
-         * channels, rate, bigEndian);
+		public void stop() {
+			thread = null;
+		}
 
-     DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
+		private void shutDown(String message) {
+			if ((errStr = message) != null && thread != null) {
+				thread = null;
+				captB.setText("Record");
+				System.err.println(errStr);
+			}
+		}
 
-     if (!AudioSystem.isLineSupported(info)) {
-       shutDown("Line matching " + info + " not supported.");
-       return;
-     }
+		public void run() {
 
-     // get and open the target data line for capture.
+			duration = 0;
+			audioInputStream = null;
 
-     try {
-       line = (TargetDataLine) AudioSystem.getLine(info);
-       line.open(format, line.getBufferSize());
-     } catch (LineUnavailableException ex) {
-       shutDown("Unable to open the line: " + ex);
-       return;
-     } catch (SecurityException ex) {
-       shutDown(ex.toString());
-       //JavaSound.showInfoDialog();
-       return;
-     } catch (Exception ex) {
-       shutDown(ex.toString());
-       return;
-     }
+			// define the required attributes for our line,
+			// and make sure a compatible line is supported.
 
-     // play back the captured audio data
-     ByteArrayOutputStream out = new ByteArrayOutputStream();
-     int frameSizeInBytes = format.getFrameSize();
-     int bufferLengthInFrames = line.getBufferSize() / 8;
-     int bufferLengthInBytes = bufferLengthInFrames * frameSizeInBytes;
-     byte[] data = new byte[bufferLengthInBytes];
-     int numBytesRead;
+			AudioFormat.Encoding encoding = AudioFormat.Encoding.PCM_SIGNED;
+			float rate = 44100.0f;
+			int channels = 2;
+			int frameSize = 4;
+			int sampleSize = 16;
+			boolean bigEndian = false;
 
-     line.start();
+			AudioFormat format = new AudioFormat(encoding, rate, sampleSize, channels, (sampleSize / 8) // ##################
+																										// 16
+																										// bit
+																										// ->
+																										// Configdatei
+																										// machen!!!
+					* channels, rate, bigEndian);
 
-     while (thread != null) {
-       if ((numBytesRead = line.read(data, 0, bufferLengthInBytes)) == -1) {
-         break;
-       }
-       out.write(data, 0, numBytesRead);
-     }
+			DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
 
-     // we reached the end of the stream.
-     // stop and close the line.
-     line.stop();
-     line.close();
-     line = null;
+			if (!AudioSystem.isLineSupported(info)) {
+				shutDown("Line matching " + info + " not supported.");
+				return;
+			}
 
-     // stop and close the output stream
-     try {
-       out.flush();
-       out.close();
-     } catch (IOException ex) {
-       ex.printStackTrace();
-     }
+			// get and open the target data line for capture.
 
-     // load bytes into the audio input stream for playback
+			try {
+				line = (TargetDataLine) AudioSystem.getLine(info);
+				line.open(format, line.getBufferSize());
+			} catch (LineUnavailableException ex) {
+				shutDown("Unable to open the line: " + ex);
+				return;
+			} catch (SecurityException ex) {
+				shutDown(ex.toString());
+				// JavaSound.showInfoDialog();
+				return;
+			} catch (Exception ex) {
+				shutDown(ex.toString());
+				return;
+			}
 
-     byte audioBytes[] = out.toByteArray();
-     ByteArrayInputStream bais = new ByteArrayInputStream(audioBytes);
-     audioInputStream = new AudioInputStream(bais, format, audioBytes.length / frameSizeInBytes);
-     
-     AudioInputStream playbackInputStream = AudioSystem.getAudioInputStream(format,
-             audioInputStream);
-     
-     // checks if the target directory already exists, if not it will be created
-     File checkPath = new File(targetDirectory);
-     if (checkPath.exists());
-     	// directory is already exists.
-     else 
-    	 checkPath.mkdirs(); // directory was created.
-     
-     String timestamp = new java.util.Date().toString(); 
-     path = targetDirectory + "voiceRecord-" + timestamp  + ".flac";
-     File outputFile = new File(path);
-     
-     FLAC_FileEncoder fe = new FLAC_FileEncoder();
-     fe.encode(playbackInputStream, outputFile);
+			// play back the captured audio data
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			int frameSizeInBytes = format.getFrameSize();
+			int bufferLengthInFrames = line.getBufferSize() / 8;
+			int bufferLengthInBytes = bufferLengthInFrames * frameSizeInBytes;
+			byte[] data = new byte[bufferLengthInBytes];
+			int numBytesRead;
 
-     long milliseconds = (long) ((audioInputStream.getFrameLength() * 1000) / format
-         .getFrameRate());
-     duration = milliseconds / 1000.0;
+			line.start();
 
-     try {
-       audioInputStream.reset();
-     } catch (Exception ex) {
-       ex.printStackTrace();
-       return;
-     }
+			while (thread != null) {
+				if ((numBytesRead = line.read(data, 0, bufferLengthInBytes)) == -1) {
+					break;
+				}
+				out.write(data, 0, numBytesRead);
+			}
 
-   }
- } // End class Capture
+			// we reached the end of the stream.
+			// stop and close the line.
+			line.stop();
+			line.close();
+			line = null;
 
- public static void main(String s[]) {
-   VoiceRecorder vc = new VoiceRecorder();
-   vc.open();
-   JFrame f = new JFrame("Capture/Playback");
-   f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-   f.getContentPane().add("Center", vc);
-   f.pack();
-   Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-   int w = 360;
-   int h = 170;
-   f.setLocation(screenSize.width / 2 - w / 2, screenSize.height / 2 - h / 2);
-   f.setSize(w, h);
-   f.show();
- }
+			// stop and close the output stream
+			try {
+				out.flush();
+				out.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
+
+			// load bytes into the audio input stream for playback
+
+			byte audioBytes[] = out.toByteArray();
+			ByteArrayInputStream bais = new ByteArrayInputStream(audioBytes);
+			audioInputStream = new AudioInputStream(bais, format, audioBytes.length / frameSizeInBytes);
+
+			AudioInputStream playbackInputStream = AudioSystem.getAudioInputStream(format, audioInputStream);
+
+			// checks if the target directory already exists, if not it will be
+			// created or if not possible an error is thrown.
+			File checkPath = new File(targetDirectory);
+			if (checkPath.exists());
+				// directory is already exists.
+			else if(checkPath.mkdirs());
+				// directory was created.
+			else
+				logger.error("The target directory does not exist and could not be created. Make sure you have the rights to write into this directory: " + targetDirectory);
+
+			String timestamp = new java.util.Date().toString();
+			path = targetDirectory + "voiceRecord-" + timestamp + ".flac";
+			try {
+				File outputFile = new File(path);
+				logger.info("Voice record is saved under: " + path);
+				FLAC_FileEncoder fe = new FLAC_FileEncoder();
+				fe.encode(playbackInputStream, outputFile);
+			} catch(Exception e) {
+				logger.error("The record could not be saved under: " + path);
+			}
+
+			long milliseconds = (long) ((audioInputStream.getFrameLength() * 1000) / format.getFrameRate());
+			duration = milliseconds / 1000.0;
+
+			try {
+				audioInputStream.reset();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+				return;
+			}
+
+		}
+	} // End class Capture
+
+	public static void main(String s[]) {
+		VoiceRecorder vc = new VoiceRecorder();
+		vc.open();
+		JFrame f = new JFrame("Capture/Playback");
+		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		f.getContentPane().add("Center", vc);
+		f.pack();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		int w = 360;
+		int h = 170;
+		f.setLocation(screenSize.width / 2 - w / 2, screenSize.height / 2 - h / 2);
+		f.setSize(w, h);
+		f.show();
+	}
 }
