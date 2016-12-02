@@ -49,6 +49,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -65,6 +66,8 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
 
+import edu.kit.ipd.parse.luna.tools.ConfigManager;
+
 
 /**
 * SimpleSoundCapture Example. This is a simple program to record sounds and
@@ -74,6 +77,14 @@ import javax.swing.border.SoftBevelBorder;
 * @author Steve Potts
 */
 public class VoiceRecorder extends JPanel implements ActionListener {
+	
+ String userDirectory = System.getProperty("user.home");
+	
+ Properties props = ConfigManager.getConfiguration(getClass());
+ 
+ String targetDirectory = userDirectory + props.getProperty("PATH");
+ 
+ String path = "";
 
  final int bufSize = 16384;
 
@@ -252,7 +263,16 @@ public class VoiceRecorder extends JPanel implements ActionListener {
      AudioInputStream playbackInputStream = AudioSystem.getAudioInputStream(format,
              audioInputStream);
      
-     File outputFile = new File("/Users/Mario/Dialogmanager/audio2.flac");
+     // checks if the target directory already exists, if not it will be created
+     File checkPath = new File(targetDirectory);
+     if (checkPath.exists());
+     	// directory is already exists.
+     else 
+    	 checkPath.mkdirs(); // directory was created.
+     
+     String timestamp = new java.util.Date().toString(); 
+     path = targetDirectory + "voiceRecord-" + timestamp  + ".flac";
+     File outputFile = new File(path);
      
      FLAC_FileEncoder fe = new FLAC_FileEncoder();
      fe.encode(playbackInputStream, outputFile);
@@ -272,11 +292,11 @@ public class VoiceRecorder extends JPanel implements ActionListener {
  } // End class Capture
 
  public static void main(String s[]) {
-   VoiceRecorder ssc = new VoiceRecorder();
-   ssc.open();
+   VoiceRecorder vc = new VoiceRecorder();
+   vc.open();
    JFrame f = new JFrame("Capture/Playback");
    f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-   f.getContentPane().add("Center", ssc);
+   f.getContentPane().add("Center", vc);
    f.pack();
    Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
    int w = 360;
