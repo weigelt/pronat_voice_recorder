@@ -88,6 +88,8 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 	String targetDirectory = userDirectory + props.getProperty("PATH");
 
 	String path = "";
+	
+	int resolution = Integer.parseInt("16"); // Integer.parseInt(props.getProperty("RESOLUTION"));
 
 	final int bufSize = 16384;
 
@@ -196,16 +198,10 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 			AudioFormat.Encoding encoding = AudioFormat.Encoding.PCM_SIGNED;
 			float rate = 44100.0f;
 			int channels = 2;
-			int frameSize = 4;
-			int sampleSize = 16;
+			int sampleSize = resolution; // 16 means 16 Bit resolution
 			boolean bigEndian = false;
 
-			AudioFormat format = new AudioFormat(encoding, rate, sampleSize, channels, (sampleSize / 8) // ##################
-																										// 16
-																										// bit
-																										// ->
-																										// Configdatei
-																										// machen!!!
+			AudioFormat format = new AudioFormat(encoding, rate, sampleSize, channels, (sampleSize / 8) 
 					* channels, rate, bigEndian);
 
 			DataLine.Info info = new DataLine.Info(TargetDataLine.class, format);
