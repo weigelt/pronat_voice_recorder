@@ -89,7 +89,7 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 
 	String path = "";
 	
-	int resolution = Integer.parseInt("16"); // Integer.parseInt(props.getProperty("RESOLUTION"));
+	int resolution = Integer.parseInt(props.getProperty("RESOLUTION"));
 
 	final int bufSize = 16384;
 
