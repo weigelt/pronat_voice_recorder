@@ -319,6 +319,6 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 		final int h = 170;
 		f.setLocation(screenSize.width / 2 - w / 2, screenSize.height / 2 - h / 2);
 		f.setSize(w, h);
-		f.show();
+		f.setVisible(true);
 	}
 }
