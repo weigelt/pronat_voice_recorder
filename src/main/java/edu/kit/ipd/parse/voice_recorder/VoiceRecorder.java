@@ -49,6 +49,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Properties;
 
 import javax.sound.sampled.AudioFormat;
@@ -81,6 +82,8 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(VoiceRecorder.class);
 
+	private boolean hasRecorded = false;
+
 	String userDirectory = System.getProperty("user.home");
 
 	Properties props = ConfigManager.getConfiguration(getClass());
@@ -88,6 +91,8 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 	String targetDirectory = userDirectory + props.getProperty("PATH");
 
 	String path = "";
+
+	private Path savedFilePath;
 
 	int resolution = Integer.parseInt(props.getProperty("RESOLUTION"));
 
@@ -178,6 +183,8 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 
 		public void stop() {
 			thread = null;
+			//			setHasRecorded(true);
+
 		}
 
 		private void shutDown(String message) {
@@ -285,11 +292,13 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 			String timestamp = new java.util.Date().toString();
 			timestamp = timestamp.replace(" ", "_");
 			path = targetDirectory + "voiceRecord-" + timestamp + ".flac";
+			final File outputFile;
 			try {
-				final File outputFile = new File(path);
+				outputFile = new File(path);
 				logger.info("Voice record is saved under: " + path);
 				final FLAC_FileEncoder fe = new FLAC_FileEncoder();
 				fe.encode(playbackInputStream, outputFile);
+				savedFilePath = outputFile.toPath();
 			} catch (final Exception e) {
 				logger.error("The record could not be saved under: " + path);
 			}
@@ -303,9 +312,31 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 				ex.printStackTrace();
 				return;
 			}
-
+			setHasRecorded(true);
 		}
 	} // End class Capture
+
+	/**
+	 * @return the hasRecorded
+	 */
+	public boolean hasRecorded() {
+		return hasRecorded;
+	}
+
+	/**
+	 * @param hasRecorded
+	 *            the hasRecorded to set
+	 */
+	public void setHasRecorded(boolean hasRecorded) {
+		this.hasRecorded = hasRecorded;
+	}
+
+	/**
+	 * @return the savedFilePath
+	 */
+	public Path getSavedFilePath() {
+		return savedFilePath;
+	}
 
 	public static void main(String s[]) {
 		final VoiceRecorder vc = new VoiceRecorder();
