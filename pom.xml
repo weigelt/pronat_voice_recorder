@@ -3,8 +3,8 @@
   	<modelVersion>4.0.0</modelVersion>
   	<parent>
 		<groupId>edu.kit.ipd.parse</groupId>
-		<artifactId>parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<artifactId>parse</artifactId>
+		<version>0.0.2</version>
 	</parent>	
   	<groupId>edu.kit.ipd.parse</groupId>
  	<artifactId>voice_recorder</artifactId>
@@ -12,9 +12,9 @@
 
 	<repositories>
 		<repository>
-			<id>ipdNexus</id>
+			<id>ipdNexus-public-releases</id>
 			<name>IPD-Repository</name>
-			<url>http://bob.ipd.kit.edu/nexus/content/repositories/public/</url>
+			<url>http://bob.ipd.kit.edu/nexus/repository/maven-public-releases/</url>
 		</repository>
 		<repository>
 			<id>speech</id>
