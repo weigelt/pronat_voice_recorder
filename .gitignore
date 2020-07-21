@@ -86,3 +86,10 @@ _ReSharper.*
 *.resharper
 *.suo
 *.cache
+
+# IntelliJ IDE
+.idea/*
+*.iws
+*.iml
+*.eml
+/out/
