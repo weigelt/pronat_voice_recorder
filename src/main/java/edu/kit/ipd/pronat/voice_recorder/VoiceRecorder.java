@@ -1,4 +1,4 @@
-package edu.kit.ipd.parse.voice_recorder;
+package edu.kit.ipd.pronat.voice_recorder;
 
 /*
 *
@@ -45,10 +45,7 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.Properties;
 
@@ -81,6 +78,7 @@ import edu.kit.ipd.parse.luna.tools.ConfigManager;
 public class VoiceRecorder extends JPanel implements ActionListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(VoiceRecorder.class);
+	@Serial private static final long serialVersionUID = 791488900874547692L;
 
 	private boolean hasRecorded = false;
 
@@ -279,9 +277,7 @@ public class VoiceRecorder extends JPanel implements ActionListener {
 			// created or if not possible an error is thrown.
 			final File checkPath = new File(targetDirectory);
 			if (checkPath.exists()) {
-				;
 			} else if (checkPath.mkdirs()) {
-				;
 				// directory was created.
 			} else {
 				logger.error(
