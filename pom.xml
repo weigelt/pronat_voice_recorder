@@ -10,13 +10,7 @@
     <artifactId>voice_recorder</artifactId>
     <version>0.0.4-SNAPSHOT</version>
     <name>ProNat Voice Recorder</name>
-
     <repositories>
-        <repository>
-            <id>ipdNexus-public-releases</id>
-            <name>IPD-Repository</name>
-            <url>http://bob.ipd.kit.edu/nexus/repository/maven-public-releases/</url>
-        </repository>
         <repository>
             <id>java.net-m2</id>
             <name>java.net - Maven 2</name>
